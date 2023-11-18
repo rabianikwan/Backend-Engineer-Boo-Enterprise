@@ -1,10 +1,12 @@
-const errorResp = msg => {
+const ErrorResp = (code, status, msg) => {
     return {
+        code,
+        status,
         error: msg
     };
 };
 
-const okResp = (msg, data) => {
+const OkResp = (msg, data) => {
     return {
         data,
         message: msg
@@ -12,6 +14,6 @@ const okResp = (msg, data) => {
 };
 
 module.exports = {
-    errorResp,
-    okResp
+    ErrorResp,
+    OkResp
 };

@@ -14,7 +14,7 @@ class ErrorKey extends Error {
         super(args);
         this.message = "key error";
         this.name = "KEY_ERROR";
-        this.code = 403;
+        this.code = 400;
     }
 }
 
@@ -23,7 +23,7 @@ class ErrorServer extends Error {
     constructor(args) {
         super(args);
         this.message = `server error: ${args}`;
-        this.name = "SERVE_ERROR";
+        this.name = "SERVER_ERROR";
         this.code = 500;
     }
 }
