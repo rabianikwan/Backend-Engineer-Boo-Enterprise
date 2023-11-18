@@ -21,6 +21,8 @@ const profiles = [
 
 module.exports = function() {
 
+  // add post, delete, update routes
+
   router.get('/*', function(req, res, next) {
     res.render('profile_template', {
       profile: profiles[0],
