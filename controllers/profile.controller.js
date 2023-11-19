@@ -1,18 +1,14 @@
 'use strict';
-const { ErrorUserInput, ErrorServer } = require('../common/error.common');
-const UserModel = require('../models/profile.model');
-
+const { ErrorServer } = require('../common/error.common');
+const UserModel = require('../models/user.model');
 
 
 const fetchUsers = async () => {
-    const users = await UserModel.find({});
-    console.log(users)
-    return users;
+    return UserModel.find({})
 }
 
 const countUsers = async () => {
-    const count = await UserModel.count();
-    return count;
+    return UserModel.countDocuments();
 }
 
 const getUser = async (id) => {
@@ -28,18 +24,42 @@ const getUser = async (id) => {
 }
 
 const getUserByObjId = async (id) => {
-    const user = await UserModel.findOne({ "_id": id });
+    const user = await UserModel.findById(id);
+    if (!user) {
+        const errorRes = new ErrorServer("user not found");
+        return errorRes;
+    }
     return user;
 }
 
 const createUser = async (user) => {
-    const created_user = await UserModel.create(user);
-    return created_user;
+    return await UserModel.create(user);
 }
 
 const updateUser = async(id, user) => {
-    const updated_user = await UserModel.findByIdAndUpdate(id, user);
-    return updated_user;
+    try {
+    const userModel = await UserModel.findOne({ "id": id });
+    if (!userModel) {
+        const errorRes = new ErrorServer("user not found");
+        return errorRes;
+    }
+    return UserModel.findByIdAndUpdate(id, user);
+    } catch (err) {
+        throw new ErrorServer(err);
+    }
+}
+
+const deleteUser = async(id) => {
+    try {
+    const userModel = await UserModel.findOne({ "id": id });
+    if (!userModel) {
+        const errorRes = new ErrorServer("user not found");
+        return errorRes;
+    }
+    return UserModel.findByIdAndDelete(id);
+    } catch (err) {
+        throw new ErrorServer(err);
+    }
 }
 
 module.exports = {
@@ -48,5 +68,6 @@ module.exports = {
     getUser,
     createUser,
     updateUser,
-    getUserByObjId
+    getUserByObjId,
+    deleteUser
 }

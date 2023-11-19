@@ -5,12 +5,15 @@
   "main": "app.js",
   "scripts": {
     "test": "jest --runInBand --detectOpenHandles",
+    "dev": "nodemon app.js",
     "start": "node app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "mongodb-memory-server": "^9.1.1",
