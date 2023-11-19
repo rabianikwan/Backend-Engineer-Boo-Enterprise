@@ -19,9 +19,7 @@ const seedPost = async() => {
   await post.save();
 }
 
-seedPost().then(() => {
-console.log("seeded post")
-}).catch((err) => {
+seedPost().then(() => {}).catch((err) => {
 console.log(err)
 });
 
@@ -32,8 +30,8 @@ router.get(`${postPrefix}`, async (_req, res) => {
     const posts = await postController.fetchPosts();
     res.status(200).json(OkResp("success get posts", posts));
   } catch(error) {
-    const errorRes = new ErrorServer("server error");
-    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
+    const errorRes = new ErrorServer(error.message);
+    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })
 
@@ -49,7 +47,7 @@ router.get(`${postPrefix}/:id`, async (req, res) => {
     res.status(200).json(OkResp("success get post", post));
   } 
   catch (error) {
-    const errorRes = new ErrorServer("server error");
+    const errorRes = new ErrorServer(error.message);
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
     }
 })
@@ -75,7 +73,7 @@ router.post(`${postPrefix}`, async (req, res) => {
     res.status(201).json(OkResp("success create post", createdPost));
   } catch(error) {
     console.log(error)
-    const errorRes = new ErrorServer("server error");
+    const errorRes = new ErrorServer(error.message);
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })
@@ -99,7 +97,7 @@ router.patch(`${postPrefix}/:id`, async (req, res) => {
     const updatedPost = await postController.updatePost(id, body);
     res.status(200).json(OkResp("success update post", updatedPost));
   } catch(error) {
-    const errorRes = new ErrorServer("server error");
+    const errorRes = new ErrorServer(error.message);
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 });
@@ -114,7 +112,7 @@ router.delete(`${postPrefix}/:id`, async (req, res) => {
     const deletedPost = await postController.deletePost(id);
     res.status(200).json(OkResp("success delete post", deletedPost));
   } catch(error) {
-    const errorRes = new ErrorServer("server error");
+    const errorRes = new ErrorServer(error.message);
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })

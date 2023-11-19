@@ -49,13 +49,13 @@ router.post(`${userPath}`, async (req, res) => {
       const errorRes = new ErrorUserInput("item(s) is missing");
       return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
     }
-    let count_doc = await userController.countUsers();
-    let id = parseInt(count_doc) + 1;
-    body.id = id;
-    const user = new User(body);
+    const count_doc = await userController.countUsers()
+    body.id = parseInt(count_doc) + 1;
+    const user = new User(body.id, body.name, body.description, body.mbti, body.enneagram, body.variant, body.tritype, body.socionics, body.sloan, body.psyche);
     const profile = await userController.createUser(user);
     res.status(201).json(OkResp("success create user", profile));
   } catch(error) {
+    // console.log(error)
     const errorRes = new ErrorServer("server error");
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }

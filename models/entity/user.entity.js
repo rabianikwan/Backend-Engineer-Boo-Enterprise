@@ -1,7 +1,7 @@
 
 class User {
-    constructor(total_users, name, description, mbti, enneagram, variant, tritype, socionics, sloan, psyche) {
-        this.id = total_users;
+    constructor(id, name, description, mbti, enneagram, variant, tritype, socionics, sloan, psyche) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.mbti = mbti;

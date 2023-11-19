@@ -38,8 +38,7 @@ const sortBest = async() => {
         const comments = await CommentModel.find().sort({ likes: -1 });
         return comments;
     } catch(error) {
-        const errorRes = new ErrorServer("server error");
-        return errorRes;
+        console.log(error)
     }
 }
 
@@ -55,7 +54,7 @@ const giveComment = async (comment) => {
     }
 }
 
-const givepollings = async (commentId, pollings) => {
+const givePollings = async (commentId, pollings) => {
         const update = await CommentModel.findByIdAndUpdate(commentId, {
             $set: {
                 pollings: {
@@ -98,7 +97,7 @@ module.exports = {
     sortBest,
     getComment,
     giveComment,
-    givepollings,
+    givePollings,
     fetchComments,
     deleteComment,
     updateComment

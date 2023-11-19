@@ -9,7 +9,7 @@ const connect = async () => {
     await mongoose.connect(mongoUri, {
         dbName: "testing-db"
     })
-    console.log(`success connect to mongoDB server ${mongoUri}`)
+    return mongoUri
 }
 
 module.exports = {

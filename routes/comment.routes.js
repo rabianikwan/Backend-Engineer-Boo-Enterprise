@@ -8,7 +8,31 @@ const userController = require("../controllers/profile.controller");
 const express = require('express');
 const routes = express.Router();
 
+const listMbti = [
+    "ISTJ", "ISFJ", "INFJ", "INTJ",
+    "ISTP", "ISFP", "INFP", "INTP",
+    "ESTP", "ESFP", "ENFP", "ENTP",
+    "ESTJ", "ESFJ", "ENFJ", "ENTJ", ""
+];
 
+const listZodiac = [
+    "Aries", "Taurus", "Gemini",
+    "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius",
+    "Capricorn", "Aquarius", "Pisces", ""
+]
+
+const listEnneagram = [
+    "1w2", "2w3", "3w2", "3w4",
+    "4w3", "4w5", "5w4", "5w6",
+    "6w5", "6w7", "7w6", "7w8",
+    "8w7", "8w9", "9w8", "9w1", ""
+]
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 const seedComment = async() => {
     const users = await userController.fetchUsers();
 
@@ -73,26 +97,34 @@ const seedComment = async() => {
         updated_at: Date.now(),
       });
       await comment.save();
+      await sleep(100);
       await comment2.save();
+      await sleep(100);
       await comment3.save();
+      await sleep(100);
       await comment4.save();
   }
 
-seedComment().then(() => {
-    console.log("seeded comment")
-    }).catch((err) => {
+seedComment().then(() => {}).catch((err) => {
     console.log(err)
 });
 
 const commentPrefix = '/v1/comments';
 
-routes.get(`${commentPrefix}`, async (_req, res) => {
+routes.get(`${commentPrefix}`, async (req, res) => {
     try {
-        const comments = await commentController.sortRecent();
-        res.status(200).json(OkResp("success get comments", comments));
+        const query = req.query.sort;
+        if (query !== "likes") {
+            const comments = await commentController.sortRecent();
+            res.status(200).json(OkResp("success get comments", comments));
+        }
+        if (query === "likes") {
+            const comments = await commentController.sortBest();
+            res.status(200).json(OkResp("success get comments", comments));
+        }
     } catch(error) {
-        const errorRes = new ErrorServer("server error");
-        return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
+        const errorRes = new ErrorServer(error.message);
+        return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
     }
 })
 
@@ -111,19 +143,9 @@ routes.get(`${commentPrefix}/:id`, async (req, res) => {
     res.status(200).json(OkResp("success get comment", comment));
 
   } catch(error) {
-    const errorRes = new ErrorServer("server error");
-    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
+      const errorRes = new ErrorServer(error.message);
+      return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
-})
-
-routes.get(`${commentPrefix}/bests`, async (req, res) => {
-    try {
-        const comments = await commentController.sortBest();
-        res.status(200).json(OkResp("success get comments", comments));
-    } catch(error) {
-        const errorRes = new ErrorServer("server error");
-        return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
-    }
 })
 
 routes.patch(`${commentPrefix}/:id/likes`, async (req, res) => {
@@ -164,8 +186,8 @@ routes.patch(`${commentPrefix}/:id/likes`, async (req, res) => {
 
   } catch(error) {
     console.log(error)
-    const errorRes = new ErrorServer("server error");
-    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
+    const errorRes = new ErrorServer(error.message);
+    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })
 
@@ -187,14 +209,27 @@ routes.patch(`${commentPrefix}/:id/pollings`, async (req, res) => {
       return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
     }
     const pollings = new Pollings(body.pollings.mbti, body.pollings.zodiac, body.pollings.enneagram);
-    console.log(pollings)
+
+    if (!listMbti.includes(pollings.mbti)) {
+      const errorRes = new ErrorUserInput("invalid mbti");
+      return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+    }
+    if (!listEnneagram.includes(pollings.enneagram)) {
+      const errorRes = new ErrorUserInput("invalid enneagram");
+      return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+    }
+    if (!listZodiac.includes(pollings.zodiac)) {
+      const errorRes = new ErrorUserInput("invalid zodiac");
+      return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+    }
+
     const updatePollings = await commentController.givepollings(id, pollings);
     res.status(200).json(OkResp("success update pollings", updatePollings));
 
   } catch(error) {
     console.log(error)
-    const errorRes = new ErrorServer("server error");
-    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, error));
+    const errorRes = new ErrorServer(error.message);
+    return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })
 
@@ -217,13 +252,25 @@ routes.post(`${commentPrefix}`, async (req, res) => {
         }
         body.post_id = post;
         body.author_id = author;
-        const comment = new CommentCreate(body.title, body.description, body.pollings, body.post_id, body.author_id);
-        console.log(comment)
+        const pollings = new Pollings(body.pollings.mbti, body.pollings.zodiac, body.pollings.enneagram);
+        // catch error if pollings return error
+        if (!listMbti.includes(pollings.mbti)) {
+            const errorRes = new ErrorUserInput("invalid mbti");
+            return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+        }
+        if (!listEnneagram.includes(pollings.enneagram)) {
+            const errorRes = new ErrorUserInput("invalid enneagram");
+            return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+        }
+        if (!listZodiac.includes(pollings.zodiac)) {
+            const errorRes = new ErrorUserInput("invalid zodiac");
+            return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
+        }
+        const comment = new CommentCreate(body.title, body.description, pollings, body.post_id, body.author_id);
         const profile = await commentController.giveComment(comment);
-        res.status(200).json(OkResp("success update comment", profile));
+        res.status(201).json(OkResp("success create comment", profile));
     } catch(error) {
-        console.log(error)
-        const errorRes = new ErrorServer("server error");
+        const errorRes = new ErrorUserInput(error.message);
         return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
     }
 })

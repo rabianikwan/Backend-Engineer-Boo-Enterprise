@@ -26,13 +26,10 @@ const seedUser = async() => {
   await user.save();
 }
 
-seedUser().then(() => {
-  console.log('User has been seeded...');
-}).catch((err) => {
+seedUser().then(() => {}).catch((err) => {
   console.log(err);
 });
 
-// seed user
 
 router.get('/', async (req, res) => {
   const profile = await userController.getUser(1);
@@ -44,19 +41,7 @@ router.get('/:id', async (req, res) => {
   try {
     let profile = await userController.getUser(parseInt(req.params.id));
     if (!profile) {
-      profile = {
-        id: "User not found",
-        name: 'User not found',
-        description: 'User not found',
-        mbti: 'User not found',
-        enneagram: 'User not found',
-        variant: 'User not found',
-        tritype: 0,
-        socionics: 'User not found',
-        sloan: 'User not found',
-        psyche: 'User not found',
-        image: 'https://soulverse.boo.world/images/1.png',
-      }
+      return res.status(404).send("user not found");
     }
     const posts = await postController.fetchPosts();
     const post = posts[0];
@@ -64,7 +49,8 @@ router.get('/:id', async (req, res) => {
     res.cookie('profile', profile._id, { maxAge: 60 * 60 * 1000, httpOnly: true });
     res.render('profile_template', { profile });
   } catch(error) {
-    const errorRes = new ErrorServer("server error");
+    console.log(error)
+    const errorRes = new ErrorServer(error.message);
     return res.status(errorRes.code).json(ErrorResp(errorRes.code, errorRes.name, errorRes.message));
   }
 })
